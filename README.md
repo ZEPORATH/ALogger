@@ -1,7 +1,7 @@
 # ALogger
 A custom wrapping to spdlog for multiple logger/sinks at once. Aim was to have console, file and null logging in place, and to enable/disable them at runtime. 
 
-Running benchmark (<ahref="https://github.com/gabime/spdlog/tree/v1.x/bench">bench.cpp</a>) gives similar metrics as one run on plain spdlog benchmark test<br>
+Running benchmark (<a href="https://github.com/gabime/spdlog/tree/v1.x/bench">bench.cpp</a>) gives similar metrics as one run on plain spdlog benchmark test<br>
 <b>Stats:</b>
 ```
 
