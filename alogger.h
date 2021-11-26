@@ -9,6 +9,7 @@
 #include <iostream>
 #include <memory>
 #include <bitset>
+#include "stream_logger.h"
 
 #ifdef APPNAME
 const std::string infoLogPath = std::string("info_" ) + std::string(APPNAME);
@@ -53,6 +54,7 @@ public:
         if (m_defaultFileLogger && loggingModes.test(1)) { m_defaultFileLogger->log(source, static_cast<spdlog::level::level_enum>(lvl), fmt, std::forward<Args>(args)...);}
         if (m_errorFileLogger && loggingModes.test(2)) { m_errorFileLogger->log(source, static_cast<spdlog::level::level_enum>(lvl), fmt, std::forward<Args>(args)...);}
         if (m_nullLogger && loggingModes.test(3)) {}
+        if (m_streamLogger && loggingModes.test(4)) {m_streamLogger->log(source, static_cast<spdlog::level::level_enum>(lvl), fmt, std::forward<Args>(args)...);}
     };
 
     template<typename... Args>
@@ -62,6 +64,7 @@ public:
         if (m_defaultFileLogger && loggingModes.test(1)) { m_defaultFileLogger->log(source, static_cast<spdlog::level::level_enum>(lvl), fmt, std::forward<Args>(args)...);}
         if (m_errorFileLogger && loggingModes.test(2)) { m_errorFileLogger->log(source, static_cast<spdlog::level::level_enum>(lvl), fmt, std::forward<Args>(args)...);}
         if (m_nullLogger && loggingModes.test(3)) {}
+        if (m_streamLogger && loggingModes.test(4)) {m_streamLogger->log(source, static_cast<spdlog::level::level_enum>(lvl), fmt, std::forward<Args>(args)...);}
     }
 
     void switchConsoleLog(bool state)
@@ -93,6 +96,7 @@ public:
      * 1st bit -> Default logging
      * 2nd bit -> Error logging
      * 3rd bit -> Null logging
+     * 4th bit -> Stream logging
      * @param value bitset for logging
      */
     void setLoggingModes(const std::bitset<8> &value) { loggingModes = value; }
@@ -104,18 +108,21 @@ private:
     std::shared_ptr<spdlog::logger> m_errorFileLogger;
     std::shared_ptr<spdlog::logger> m_consoleLogger;
     std::shared_ptr<spdlog::logger> m_nullLogger;
-
+    std::shared_ptr<spdlog::logger> m_streamLogger;
+    std::shared_ptr<IStreamSocket> m_socket;
     //Bit set containing logging modes to be used
     std::bitset<8> loggingModes;
 
     ALogger()
     {
-        loggingModes = std::bitset<8>(std::string("00000111"));
+        m_socket = std::make_shared<IStreamSocket>(); // Dummy socket created
+        loggingModes = std::bitset<8>(std::string("00011111"));
         m_defaultFileLogger = spdlog::rotating_logger_mt("infoLogger", infoLogPath, infoLogFileSize, rotationNumber);
         m_consoleLogger     = spdlog::stdout_logger_mt("consoleLogger");
         m_nullLogger        = spdlog::null_logger_mt("nullLogger");
         m_errorFileLogger   = spdlog::rotating_logger_mt("errorLogger", errorLogPath, errorLogFileSize, rotationNumber, false);
         m_errorFileLogger->set_level(spdlog::level::err);
+        m_streamLogger      = spdlog::stream_logger_mt("streamLogger", m_socket);
     }
     ~ALogger();
 
